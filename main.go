@@ -88,6 +88,8 @@ func main() {
     mcboop_launch_cmd = append(mcboop_launch_cmd, os.Args[i])
   }
 
+  // TODO: Check for MCBoop Updates
+
   cmd := exec.Command(homedir + ".mcboop/java/bin/java", mcboop_launch_cmd...)
   cmd.Stdout = os.Stdout
   cmd.Stderr = os.Stderr
