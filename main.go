@@ -3,9 +3,11 @@ package main
 import "os"
 import "io"
 import "fmt"
+import "strings"
 import "os/user"
 import "runtime"
 import "os/exec"
+import "io/ioutil"
 import "encoding/hex"
 import "crypto/sha256"
 import "path/filepath"
@@ -42,8 +44,8 @@ func main() {
   // Check Java version
   // If java.tar.gz is not there or sum is bad redownload it
   // Yes this is where the java version is set
-  current := "151eb4ec00f82e5e951126f572dc9116104c884d97f91be14ec11e85fc2dd626"
-  url := "https://download.java.net/java/GA/jdk12.0.1/69cfe15208a647278a19ef0990eea691/12/GPL/openjdk-12.0.1_linux-x64_bin.tar.gz"
+  current := "96d24d94c022b3e414b612cae8829244329d71ad2cce790f099c020f33247e7e"
+  url := "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u212-b04/OpenJDK8U-jre_x64_linux_hotspot_8u212b04.tar.gz"
 
   // Make sure the java.tar.gz file is there
   if _, err := os.Stat(homedir + ".mcboop/java.tar.gz"); err != nil {
@@ -71,7 +73,7 @@ func main() {
   if _, err := os.Stat(homedir + ".mcboop/java"); err != nil {
     // We extracting bois
     archiver.Unarchive(homedir + ".mcboop/java.tar.gz", homedir + ".mcboop")
-    files, _ := filepath.Glob(homedir + ".mcboop/jdk-*")
+    files, _ := filepath.Glob(homedir + ".mcboop/jdk*")
     os.Rename(files[0], homedir + ".mcboop/java")
   }
 
@@ -90,8 +92,26 @@ func main() {
 
   // TODO: Check for MCBoop Updates
 
+  // Launch MC from the command McBoop.jar Generated
+  // TODO: FInd a better way to handle this
   cmd := exec.Command(homedir + ".mcboop/java/bin/java", mcboop_launch_cmd...)
   cmd.Stdout = os.Stdout
   cmd.Stderr = os.Stderr
   cmd.Run()
+
+  // Make sure the .launch file is there
+  if _, err := os.Stat(homedir + ".mcboop/.launch"); err != nil {
+    fmt.Println("McBoop.jar didn't exit right check above to see what happened")
+  } else {
+    // We have the file!
+    launch_file, _ := os.Open(homedir + ".mcboop/.launch")
+    launch_cmd, _ := ioutil.ReadAll(launch_file)
+    launch_file.Close()
+    os.Remove(homedir + ".mcboop/.launch")
+
+    mc := exec.Command(homedir + ".mcboop/java/bin/java", strings.Split(string(launch_cmd), " ")...)
+    mc.Stdout = os.Stdout
+    mc.Stderr = os.Stderr
+    mc.Run()
+  }
 }
