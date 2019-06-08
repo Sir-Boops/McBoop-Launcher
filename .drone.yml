@@ -6,6 +6,7 @@ pipeline:
             - apk add git
             - go get -u github.com/mholt/archiver
             - go build
+            - ls -al
             - mv McBoop-Launcher McBoop
             - sha256sum McBoop | head -c 64 > McBoop.sha256
     deploy:
