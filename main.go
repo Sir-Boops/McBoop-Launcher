@@ -128,6 +128,9 @@ func main() {
     mc := exec.Command(homedir + ".mcboop/java/bin/java", strings.Split(string(launch_cmd), " ")...)
     mc.Stdout = os.Stdout
     mc.Stderr = os.Stderr
+    fmt.Println("")
+    fmt.Println("Game logging starts here")
+    fmt.Println("")
     mc.Run()
   }
 }
