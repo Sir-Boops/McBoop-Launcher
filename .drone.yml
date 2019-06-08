@@ -1,6 +1,7 @@
 pipeline:
     build:
-        image: golang:1.12.5
+        image: golang:1.12.5-alpine
+        pull: true
         commands:
             - go get -u github.com/mholt/archiver
             - go build
