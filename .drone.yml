@@ -1,0 +1,16 @@
+pipeline:
+    build:
+        image: golang:1.12.5
+        commands:
+            - go get -u github.com/mholt/archiver
+            - go build
+            - mv McBoop-Launcher McBoop
+            - sha256sum McBoop | head -c 64 > McBoop.sha256
+    deploy:
+        image: plugins/s3
+        bucket: boops-deploy
+        acl: public-read
+        region: us-east-1
+        source: McBoop*
+        target: /McBoop
+        secrets: [ aws_access_key_id, aws_secret_access_key ]
