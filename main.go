@@ -1,15 +1,12 @@
 package main
 
 import "os"
-import "io"
 import "fmt"
 import "strings"
 import "os/user"
 import "runtime"
 import "os/exec"
 import "io/ioutil"
-import "encoding/hex"
-import "crypto/sha256"
 import "path/filepath"
 import "github.com/mholt/archiver"
 
@@ -55,11 +52,7 @@ func main() {
     DownloadFile(url, homedir + ".mcboop/java.tar.gz")
   } else {
     // It is there to check sum
-    java_file, _ := os.Open(homedir + ".mcboop/java.tar.gz")
-    defer java_file.Close()
-    hash := sha256.New()
-    _, _ = io.Copy(hash, java_file)
-    sha := hex.EncodeToString(hash.Sum(nil))
+    sha := Sha256SumFile(homedir + ".mcboop/java.tar.gz")
     if sha != current {
       // We got a bad java.tar.gz
       os.RemoveAll(homedir + ".mcboop/java")
@@ -81,6 +74,16 @@ func main() {
   // If it's not already there else check for an update
   if _, err := os.Stat(homedir + ".mcboop/McBoop.jar"); err != nil {
     DownloadFile("https://s3.amazonaws.com/boops-deploy/McBoop/McBoop.jar", homedir + ".mcboop/McBoop.jar")
+  } else {
+    // ShaSUM it and check for updates
+    remote_sum := ReadRemoteText("https://s3.amazonaws.com/boops-deploy/McBoop/McBoop.jar.sha256")
+    sum := Sha256SumFile(homedir + ".mcboop/McBoop.jar")
+    if sum != remote_sum {
+      fmt.Println("A newer version of McBoop has been found and will now be installed")
+      fmt.Println("This should only take a moment to download")
+      os.Remove(homedir + ".mcboop/McBoop.jar")
+      DownloadFile("https://s3.amazonaws.com/boops-deploy/McBoop/McBoop.jar", homedir + ".mcboop/McBoop.jar")
+    }
   }
 
   mcboop_launch_cmd := []string{"-jar", homedir + ".mcboop/McBoop.jar"}
@@ -89,8 +92,6 @@ func main() {
   for i := 1; i < len(os.Args); i++ {
     mcboop_launch_cmd = append(mcboop_launch_cmd, os.Args[i])
   }
-
-  // TODO: Check for MCBoop Updates
 
   // Launch MC from the command McBoop.jar Generated
   // TODO: FInd a better way to handle this
