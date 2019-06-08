@@ -11,10 +11,10 @@ import "path/filepath"
 import "github.com/mholt/archiver"
 
 func main() {
-  // TODO: Auto update this boi
 
   // What this does
   // 0: Make sure this is running on Linux
+  // 0.5: Check for launcher updates
   // 1: Creates a ~/.McBoop folder
   // 2: Downloads latest good openjdk version
   // ( Checking the meta.json file at https://git.sergal.org/Sir-Boops/McBoop-Launcher )
@@ -26,6 +26,21 @@ func main() {
     fmt.Println("Sorry, this tool is only for Linux at the moment")
     os.Exit(0)
   }
+
+  // Check for launcher updates
+  expath, _ := filepath.Abs(os.Args[0])
+  ex_remote_sum := ReadRemoteText("https://s3.amazonaws.com/boops-deploy/McBoop/McBoop.sha256")
+  ex_sum := Sha256SumFile(expath)
+  if ex_sum != ex_remote_sum {
+    fmt.Println("A launcher update has been found and will now be installed")
+    fmt.Println("This can take a little bit of time!")
+    os.Remove(expath)
+    DownloadFile("https://s3.amazonaws.com/boops-deploy/McBoop/McBoop", expath)
+    os.Chmod(expath, os.ModePerm)
+    fmt.Println("Done! please re-run your launch command again!")
+    os.Exit(0)
+  }
+
 
   // Get Users home dir path
   usr, _ := user.Current()
